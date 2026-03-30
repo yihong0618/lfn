@@ -1,0 +1,3 @@
+在仓库根目录执行：
+uv tool install . --reinstall
+uv tool uninstall lfn
