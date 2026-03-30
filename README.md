@@ -1,1 +1,1 @@
-life note
+life note, [howto](./howto.md)
