@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import os
 import sys
+import tempfile
 import unittest
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -545,6 +546,33 @@ class LfnBuildNumberedNotesTests(unittest.TestCase):
         notes = [f"笔记{i}" for i in range(1, 101)]
         table = lfn.build_numbered_notes(notes)
         self.assertIsNotNone(table)
+
+
+class LfnSubprocessMissingTests(unittest.TestCase):
+    """git/bash 缺失时应返回 (False, 消息)，而不是抛出 OSError"""
+
+    def test_execute_git_pull_returns_false_when_git_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            (Path(directory) / ".git").mkdir()
+            with patch.object(lfn, "LIFE_NOTE_DIR", Path(directory)):
+                with patch.object(
+                    lfn.subprocess, "run", side_effect=FileNotFoundError("git")
+                ):
+                    ok, message = lfn.execute_git_pull()
+        self.assertFalse(ok)
+        self.assertIn("git", message)
+
+    def test_execute_update_returns_false_when_bash_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            script = Path(directory) / "update.sh"
+            script.write_text("#!/bin/bash\n", encoding="utf-8")
+            with patch.object(lfn, "UPDATE_SCRIPT", script):
+                with patch.object(
+                    lfn.subprocess, "run", side_effect=FileNotFoundError("bash")
+                ):
+                    ok, message = lfn.execute_update()
+        self.assertFalse(ok)
+        self.assertTrue(message)
 
 
 if __name__ == "__main__":
