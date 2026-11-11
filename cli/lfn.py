@@ -520,6 +520,8 @@ def execute_git_pull() -> tuple[bool, str]:
             text=True,
             check=True,
         )
+    except OSError as error:
+        return False, f"无法执行 git pull: {error}"
     except subprocess.CalledProcessError as error:
         message = format_command_message(
             error.stdout,
@@ -563,6 +565,8 @@ def execute_update() -> tuple[bool, str]:
             text=True,
             check=True,
         )
+    except OSError as error:
+        return False, f"无法执行 update 脚本: {error}"
     except subprocess.CalledProcessError as error:
         message = format_command_message(
             error.stdout,
